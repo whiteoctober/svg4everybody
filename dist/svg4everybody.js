@@ -5,11 +5,15 @@
     }) : "object" == typeof exports ? module.exports = factory() : root.svg4everybody = factory();
 }(this, function() {
     /*! svg4everybody v2.0.3 | github.com/jonathantneal/svg4everybody */
-    function embed(svg, target) {
+    function embed(destination, target) {
         // if the target exists
         if (target) {
-            // create a document fragment to hold the contents of the target
-            var fragment = document.createDocumentFragment(), viewBox = !svg.getAttribute("viewBox") && target.getAttribute("viewBox");
+            for (// create a document fragment to hold the contents of the target
+            var fragment = document.createDocumentFragment(), svg = destination; svg && !/svg/i.test(svg.nodeName); ) {
+                svg = svg.parentNode;
+            }
+            // cache the closest matching viewBox
+            var viewBox = !svg.getAttribute("viewBox") && target.getAttribute("viewBox");
             // conditionally set the viewBox on the svg
             viewBox && svg.setAttribute("viewBox", viewBox);
             // copy the contents of the clone into the fragment
@@ -18,7 +22,7 @@
                 fragment.appendChild(clone.firstChild);
             }
             // append the fragment into the svg
-            svg.appendChild(fragment);
+            destination.appendChild(fragment);
         }
     }
     function loadreadystatechange(xhr) {
@@ -50,8 +54,8 @@
             var index = 0; index < uses.length; ) {
                 // get the current <use>
                 var use = uses[index], svg = use.parentNode;
-                if (svg && /svg/i.test(svg.nodeName)) {
-                    var src = use.getAttribute("xlink:href");
+                if (svg) {
+                    var src = use.getAttribute("xlink:href") || use.getAttributeNS("http://www.w3.org/1999/xlink", "href");
                     if (polyfill && (!opts.validate || opts.validate(src, svg, use))) {
                         // remove the <use> element
                         svg.removeChild(use);
